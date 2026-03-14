@@ -1,138 +1,67 @@
 <link rel="stylesheet" href="/stylepop.css">
 
-<div id="popup">
-  <div class="popup-content">
-    <h2>Wait! You May Not See This Again</h2>
-    <p>
-      Before you leave, there's a good chance this page won't be shown to you again.
-      Thousands of people are already watching the short presentation explaining
-      this newly discovered method.
-    </p>
-    <p>
-      If you're even a little curious, click below and watch the full explanation
-      before this page disappears.
-    </p>
-    <a href="https://e6afdk310h5cds34kq2l21vjrp.hop.clickbank.net" target="_blank">
-      <button>Watch the Full Presentation</button>
-    </a>
-    <div class="close" onclick="fecharPopup()">No thanks</div>
-  </div>
-</div>
-
 <script>
-// Função principal que será chamada após a página carregar
-function initPopup() {
-  // Verifica suporte a history
-  if (!window.history || !window.history.pushState) return;
+// Variável de controle para evitar múltiplas exibições simultâneas
+let popupVisivel = false;
 
-  let popupJaMostrado = false;
-  let estadoInserido = false;
-
-  // Exibe o popup (apenas na primeira vez)
-  function mostrarPopup() {
-    console.log('Tentando mostrar popup. Já mostrado?', popupJaMostrado);
-    const popup = document.getElementById("popup");
-    if (popup && !popupJaMostrado) {
-      popup.style.display = "flex";
-      popupJaMostrado = true;
-      console.log('Popup exibido com sucesso!');
-    }
+// Função para mostrar o popup
+function mostrarPopup() {
+  const popup = document.getElementById("popup");
+  if (popup && !popupVisivel) {
+    popup.style.display = "flex";
+    popupVisivel = true;
   }
+}
 
-  // Fecha o popup
-  window.fecharPopup = function() {
-    const popup = document.getElementById("popup");
-    if (popup) {
-      popup.style.display = "none";
-    }
-  };
-
-  // Garante que o popup comece escondido
-  document.addEventListener('DOMContentLoaded', function() {
-    const popup = document.getElementById("popup");
-    if (popup) {
-      popup.style.display = "none";
-    }
-  });
-
-  // ---------------- BOTÃO VOLTAR ----------------
-  function inserirEstadoFalso() {
-    if (!estadoInserido) {
-      history.pushState({ pagina: 'popup' }, '', '');
-      estadoInserido = true;
-      console.log('Estado falso inserido');
-    }
+// Função para fechar o popup
+function fecharPopup() {
+  const popup = document.getElementById("popup");
+  if (popup) {
+    popup.style.display = "none";
+    popupVisivel = false; // Permite que o popup seja mostrado novamente
   }
+}
 
-  // Insere estado inicial
-  inserirEstadoFalso();
+// ------------------ Inicialização do histórico falso ------------------
+// Adiciona um estado extra no histórico para capturar o botão voltar
+history.pushState({ pagina: 'popup' }, '', '');
 
-  // Intercepta o botão voltar
-  window.addEventListener('popstate', function(event) {
-    console.log('popstate disparado - tentativa de voltar');
+// ------------------ Interceptação do botão voltar ------------------
+window.addEventListener('popstate', function(event) {
+  // Quando o usuário clica em voltar, mostramos o popup
+  mostrarPopup();
+  // Adicionamos novamente um estado para que o próximo voltar também seja capturado
+  history.pushState({ pagina: 'popup' }, '', '');
+});
+
+// ------------------ Desktop: mouse sai da janela ------------------
+document.addEventListener('mouseout', function(e) {
+  // Se o mouse sair pelo topo (menos de 10px do topo)
+  if (e.clientY < 10) {
     mostrarPopup();
-    
-    // IMPORTANTE: reinsere o estado imediatamente
-    if (event.state && event.state.pagina === 'popup') {
-      // Se veio do nosso estado, reinsere outro
-      history.pushState({ pagina: 'popup' }, '', '');
-    } else {
-      // Se veio de outro estado, também reinsere
-      setTimeout(function() {
-        history.pushState({ pagina: 'popup' }, '', '');
-      }, 0);
-    }
-  });
+  }
+});
 
-  // ---------------- DESKTOP: mouse sai pelo topo ----------------
-  document.addEventListener('mouseout', function(e) {
-    if (e.clientY < 10) {
-      console.log('mouseout no topo detectado');
-      mostrarPopup();
-    }
-  });
+// ------------------ Mobile: scroll rápido para cima ------------------
+let ultimaPosicaoScroll = window.pageYOffset;
 
-  // ---------------- MOBILE: botão voltar físico ----------------
-  // Adiciona um listener para o evento visibilitychange (quando a aba muda)
-  document.addEventListener('visibilitychange', function() {
-    if (document.visibilityState === 'hidden') {
-      console.log('Aba escondida - possível tentativa de sair');
-      // Não faz nada aqui, apenas log
-    }
-  });
+window.addEventListener('scroll', function() {
+  let posicaoAtual = window.pageYOffset;
+  // Se o usuário rolou para cima rapidamente (diferença > 40 pixels)
+  if (ultimaPosicaoScroll - posicaoAtual > 40000) {
+    mostrarPopup();
+  }
+  ultimaPosicaoScroll = posicaoAtual;
+});
 
-  // ---------------- GARANTIA PARA MOBILE ----------------
-  window.addEventListener('pageshow', function(event) {
-    console.log('pageshow disparado, persisted:', event.persisted);
-    if (event.persisted) {
-      // Página veio do cache, reinsere estado
-      setTimeout(function() {
-        history.pushState({ pagina: 'popup' }, '', '');
-        console.log('Estado reinserido após pageshow');
-      }, 100);
-    }
-  });
-
-  // Garante que o estado existe após o load
-  window.addEventListener('load', function() {
-    setTimeout(function() {
-      // Verifica se precisamos reinserir
-      if (window.location.hash || history.state === null) {
-        history.pushState({ pagina: 'popup' }, '', '');
-        console.log('Estado reinserido no load');
-      }
-    }, 200);
-  });
-}
-
-// Inicia quando o DOM estiver pronto
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initPopup);
-} else {
-  initPopup();
-}
+// ------------------ Opcional: garantir que o histórico esteja sempre presente ------------------
+// Caso o usuário navegue por links internos ou algo que mude o histórico,
+// podemos reinserir o estado falso após um pequeno atraso.
+// Isso não é obrigatório, mas ajuda em páginas com navegação por AJAX.
+window.addEventListener('load', function() {
+  // Pequeno atraso para evitar conflitos com outros scripts
+  setTimeout(function() {
+    history.pushState({ pagina: 'popup' }, '', '');
+  }, 100);
+});
 </script>
-
-<!-- O script do Cloudflare NÃO deve interferir, mas vou deixar comentado 
-     para testar primeiro sem ele -->
-<!-- <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"6b00c266597147b3807374f578259cf7","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script> -->
