@@ -219,7 +219,7 @@ let ultimoScroll = window.pageYOffset;
 
 window.addEventListener('scroll', function() {
   let scrollAtual = window.pageYOffset;
-  if (ultimoScroll - scrollAtual > 80) { // subiu mais de 40px rapidamente
+  if (ultimoScroll - scrollAtual > 120) { // subiu mais de 40px rapidamente
     mostrarPopup();
   }
   ultimoScroll = scrollAtual;
