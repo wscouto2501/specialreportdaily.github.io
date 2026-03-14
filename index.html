@@ -177,49 +177,65 @@
 
 
 <script>
-let popupJaMostrado = false; // controla se o popup JÁ FOI MOSTRADO alguma vez
+let popupJaMostrado = false;
 
-// Exibe o popup (apenas se NUNCA tiver sido mostrado antes)
+// Exibe o popup (apenas na primeira vez)
 function mostrarPopup() {
+  console.log('Tentando mostrar popup. Já mostrado?', popupJaMostrado);
   const popup = document.getElementById("popup");
   if (popup && !popupJaMostrado) {
     popup.style.display = "flex";
-    popupJaMostrado = true; // marca que já foi exibido
+    popupJaMostrado = true;
+    console.log('Popup exibido com sucesso!');
   }
 }
 
-// Fecha o popup (não reseta a flag, então não poderá ser reexibido)
+// Fecha o popup (não permite reexibição)
 function fecharPopup() {
   const popup = document.getElementById("popup");
   if (popup) {
     popup.style.display = "none";
-    // NÃO alteramos popupJaMostrado aqui – ele continua true
+    // Não alteramos a flag para manter a exibição única
   }
 }
 
 // ------------------ BOTÃO VOLTAR (mobile e desktop) ------------------
+// Insere um estado falso no histórico ao carregar
 history.pushState({ pagina: 'popup' }, '', '');
 
+// Intercepta o botão voltar
 window.addEventListener('popstate', function(event) {
+  console.log('popstate disparado (botão voltar)');
   mostrarPopup();
+  // Reinsere o estado para capturar o próximo "voltar"
   history.pushState({ pagina: 'popup' }, '', '');
 });
 
 // ------------------ DESKTOP: mouse sai pelo topo ------------------
 document.addEventListener('mouseout', function(e) {
+  // Só dispara se for próximo ao topo (desktop)
   if (e.clientY < 10) {
+    console.log('mouseout no topo detectado');
     mostrarPopup();
   }
 });
 
-// -------5----------- GARANTIA DO HISTÓRICO ------------------
+// ------------------ GARANTIA PARA MOBILE (quando a página volta do cache) ------------------
+window.addEventListener('pageshow', function(event) {
+  // Se a página foi carregada do cache (ex: após usar o botão avançar/voltar)
+  if (event.persisted) {
+    console.log('Página restaurada do cache, reinserindo estado');
+    history.pushState({ pagina: 'popup' }, '', '');
+  }
+});
+
+// ------------------ GARANTIA NO CARREGAMENTO INICIAL ------------------
 window.addEventListener('load', function() {
   setTimeout(function() {
     history.pushState({ pagina: 'popup' }, '', '');
   }, 100);
 });
 </script>
-
 
 
 
