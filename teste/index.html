@@ -48,7 +48,7 @@ let ultimaPosicaoScroll = window.pageYOffset;
 window.addEventListener('scroll', function() {
   let posicaoAtual = window.pageYOffset;
   // Se o usuário rolou para cima rapidamente (diferença > 40 pixels)
-  if (ultimaPosicaoScroll - posicaoAtual > 40000) {
+  if (ultimaPosicaoScroll - posicaoAtual > 40) {
     mostrarPopup();
   }
   ultimaPosicaoScroll = posicaoAtual;
