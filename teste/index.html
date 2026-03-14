@@ -20,11 +20,13 @@
 </div>
 
 <script>
-(function() {
-  // Verifica se o navegador suporta manipulação de histórico
+// Função principal que será chamada após a página carregar
+function initPopup() {
+  // Verifica suporte a history
   if (!window.history || !window.history.pushState) return;
 
   let popupJaMostrado = false;
+  let estadoInserido = false;
 
   // Exibe o popup (apenas na primeira vez)
   function mostrarPopup() {
@@ -37,54 +39,100 @@
     }
   }
 
-  // Fecha o popup (não permite reexibição)
+  // Fecha o popup
   window.fecharPopup = function() {
     const popup = document.getElementById("popup");
     if (popup) {
       popup.style.display = "none";
-      // Não alteramos a flag para manter a exibição única
     }
   };
 
-  // ---------------- BOTÃO VOLTAR (mobile e desktop) ----------------
-  // Insere um estado falso imediatamente
-  history.pushState({ pagina: 'popup' }, '', '');
+  // Garante que o popup comece escondido
+  document.addEventListener('DOMContentLoaded', function() {
+    const popup = document.getElementById("popup");
+    if (popup) {
+      popup.style.display = "none";
+    }
+  });
+
+  // ---------------- BOTÃO VOLTAR ----------------
+  function inserirEstadoFalso() {
+    if (!estadoInserido) {
+      history.pushState({ pagina: 'popup' }, '', '');
+      estadoInserido = true;
+      console.log('Estado falso inserido');
+    }
+  }
+
+  // Insere estado inicial
+  inserirEstadoFalso();
 
   // Intercepta o botão voltar
   window.addEventListener('popstate', function(event) {
-    console.log('popstate disparado (botão voltar)');
+    console.log('popstate disparado - tentativa de voltar');
     mostrarPopup();
-
-    // Reinsere o estado após um pequeno atraso para garantir compatibilidade mobile
-    setTimeout(function() {
+    
+    // IMPORTANTE: reinsere o estado imediatamente
+    if (event.state && event.state.pagina === 'popup') {
+      // Se veio do nosso estado, reinsere outro
       history.pushState({ pagina: 'popup' }, '', '');
-    }, 0);
+    } else {
+      // Se veio de outro estado, também reinsere
+      setTimeout(function() {
+        history.pushState({ pagina: 'popup' }, '', '');
+      }, 0);
+    }
   });
 
   // ---------------- DESKTOP: mouse sai pelo topo ----------------
   document.addEventListener('mouseout', function(e) {
-    // Só dispara se for próximo ao topo (indicativo de saída)
     if (e.clientY < 10) {
       console.log('mouseout no topo detectado');
       mostrarPopup();
     }
   });
 
-  // ---------------- GARANTIA PARA MOBILE (página restaurada do cache) ----------------
-  window.addEventListener('pageshow', function(event) {
-    if (event.persisted) {
-      console.log('Página restaurada do cache, reinserindo estado');
-      history.pushState({ pagina: 'popup' }, '', '');
+  // ---------------- MOBILE: botão voltar físico ----------------
+  // Adiciona um listener para o evento visibilitychange (quando a aba muda)
+  document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'hidden') {
+      console.log('Aba escondida - possível tentativa de sair');
+      // Não faz nada aqui, apenas log
     }
   });
 
-  // ---------------- GARANTIA NO CARREGAMENTO INICIAL ----------------
-  // Já fizemos pushState no início, mas repetir no load não faz mal
-  window.addEventListener('load', function() {
-    setTimeout(function() {
-      history.pushState({ pagina: 'popup' }, '', '');
-    }, 100);
+  // ---------------- GARANTIA PARA MOBILE ----------------
+  window.addEventListener('pageshow', function(event) {
+    console.log('pageshow disparado, persisted:', event.persisted);
+    if (event.persisted) {
+      // Página veio do cache, reinsere estado
+      setTimeout(function() {
+        history.pushState({ pagina: 'popup' }, '', '');
+        console.log('Estado reinserido após pageshow');
+      }, 100);
+    }
   });
 
-})();
+  // Garante que o estado existe após o load
+  window.addEventListener('load', function() {
+    setTimeout(function() {
+      // Verifica se precisamos reinserir
+      if (window.location.hash || history.state === null) {
+        history.pushState({ pagina: 'popup' }, '', '');
+        console.log('Estado reinserido no load');
+      }
+    }, 200);
+  });
+}
+
+// Inicia quando o DOM estiver pronto
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initPopup);
+} else {
+  initPopup();
+}
 </script>
+
+<!-- O script do Cloudflare NÃO deve interferir, mas vou deixar comentado 
+     para testar primeiro sem ele -->
+<!-- <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"6b00c266597147b3807374f578259cf7","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script> -->
