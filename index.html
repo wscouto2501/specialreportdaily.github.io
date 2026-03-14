@@ -209,14 +209,19 @@ lastScroll = currentScroll
 
 })
 
-//// BOTÃO VOLTAR (mobile e desktop)
+//// CRIA HISTÓRICO FALSO
+history.pushState({page:1}, "", "")
 
-history.pushState(null, null, location.href)
+window.addEventListener("popstate", function(event){
 
-window.onpopstate = function () {
-  mostrarPopup()
-}
+  if(!popupMostrado){
+    mostrarPopup()
 
+    // empurra novamente para evitar sair
+    history.pushState({page:1}, "", "")
+  }
+
+})
 </script>
 
 
