@@ -177,56 +177,42 @@
 
 
 <script>
-let popupVisivel = false; // controla se o popup está aberto no momento
+let popupJaMostrado = false; // controla se o popup JÁ FOI MOSTRADO alguma vez
 
-// Exibe o popup (apenas se não estiver visível)
+// Exibe o popup (apenas se NUNCA tiver sido mostrado antes)
 function mostrarPopup() {
   const popup = document.getElementById("popup");
-  if (popup && !popupVisivel) {
+  if (popup && !popupJaMostrado) {
     popup.style.display = "flex";
-    popupVisivel = true;
+    popupJaMostrado = true; // marca que já foi exibido
   }
 }
 
-// Fecha o popup e permite que ele seja mostrado novamente
+// Fecha o popup (agora não reseta a flag, então não poderá ser reexibido)
 function fecharPopup() {
   const popup = document.getElementById("popup");
   if (popup) {
     popup.style.display = "none";
-    popupVisivel = false;
+    // NÃO alteramos popupJaMostrado aqui – ele continua true
   }
 }
 
 // ------------------ BOTÃO VOLTAR (mobile e desktop) ------------------
-// Adiciona um estado falso no histórico ao carregar a página
 history.pushState({ pagina: 'popup' }, '', '');
 
-// Intercepta o evento popstate (disparado ao clicar em "voltar")
 window.addEventListener('popstate', function(event) {
-  mostrarPopup();               // exibe o popup
-  history.pushState({ pagina: 'popup' }, '', ''); // reinsere estado para o próximo "voltar"
+  mostrarPopup();
+  history.pushState({ pagina: 'popup' }, '', '');
 });
 
 // ------------------ DESKTOP: mouse sai pelo topo ------------------
 document.addEventListener('mouseout', function(e) {
-  if (e.clientY < 10) { // saiu pelo topo da janela
+  if (e.clientY < 10) {
     mostrarPopup();
   }
 });
 
-// ------------------ MOBILE: scroll rápido para cima ------------------
-let ultimoScroll = window.pageYOffset;
-
-window.addEventListener('scroll', function() {
-  let scrollAtual = window.pageYOffset;
-  if (ultimoScroll - scrollAtual > 40) { // subiu mais de 40px rapidamente
-    mostrarPopup();
-  }
-  ultimoScroll = scrollAtual;
-});
-
-// ------------------ GARANTIA DO HISTÓRICO (opcional) ------------------
-// Reinsere o estado falso após a página carregar (segurança)
+// ------------------ GARANTIA DO HISTÓRICO ------------------
 window.addEventListener('load', function() {
   setTimeout(function() {
     history.pushState({ pagina: 'popup' }, '', '');
