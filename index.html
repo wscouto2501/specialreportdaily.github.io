@@ -170,60 +170,68 @@
   </div>
 </div>
 
-<script>
 
-let popupMostrado = false
 
+
+  <script>
+let popupMostrado = false;
+
+// função para mostrar popup
 function mostrarPopup(){
   if(!popupMostrado){
-    document.getElementById("popup").style.display="flex"
-    popupMostrado = true
+    const popup = document.getElementById("popup");
+    if(popup){
+      popup.style.display = "flex";
+      popupMostrado = true;
+    }
   }
 }
 
+// função para fechar popup
 function fecharPopup(){
-  document.getElementById("popup").style.display="none"
+  const popup = document.getElementById("popup");
+  if(popup){
+    popup.style.display = "none";
+  }
 }
 
-//// DESKTOP (mouse sair da tela)
-
+/* ------------------ DESKTOP: mouse sair da tela ------------------ */
 document.addEventListener("mouseout", function(e){
-  if(e.clientY < 10){
-    mostrarPopup()
+  if(e.clientY < 10 && !popupMostrado){
+    mostrarPopup();
   }
-})
+});
 
-//// MOBILE (scroll rápido para cima)
-
-let lastScroll = 0
+/* ------------------ MOBILE: scroll rápido para cima ------------------ */
+let lastScroll = window.pageYOffset;
 
 window.addEventListener("scroll", function(){
-
-let currentScroll = window.pageYOffset
-
-if(currentScroll < lastScroll - 40){
-  mostrarPopup()
-}
-
-lastScroll = currentScroll
-
-})
-
-//// CRIA HISTÓRICO FALSO
-history.pushState({page:1}, "", "")
-
-window.addEventListener("popstate", function(event){
-
-  if(!popupMostrado){
-    mostrarPopup()
-
-    // empurra novamente para evitar sair
-    history.pushState({page:1}, "", "")
+  let currentScroll = window.pageYOffset;
+  // se scroll subir rapidamente (mais de 40px)
+  if(lastScroll - currentScroll > 40 && !popupMostrado){
+    mostrarPopup();
   }
+  lastScroll = currentScroll;
+});
 
-})
+/* ------------------ MOBILE + DESKTOP: botão voltar ------------------ */
+// cria histórico falso
+history.pushState({page:1}, "", "");
+
+// intercepta botão voltar
+window.addEventListener("popstate", function(event){
+  if(!popupMostrado){
+    mostrarPopup();
+    // empurra outro estado para evitar sair
+    history.pushState({page:1}, "", "");
+  }
+});
+
+/* ------------------ opcional: garantir histórico em mobile ------------------ */
+document.addEventListener("click", function(){
+  history.pushState({page:1}, "", "");
+}, {once:true});
 </script>
-
 
 
 
