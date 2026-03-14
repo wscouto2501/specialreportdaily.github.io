@@ -1,138 +1,88 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Special Report</title>
-
-<style>
-
-body{
-font-family: Arial, sans-serif;
-margin:0;
-padding:0;
-background:#f5f5f5;
-}
-
-.container{
-max-width:800px;
-margin:auto;
-background:white;
-padding:30px;
-}
-
-h1{
-font-size:28px;
-}
-
-button{
-background:#ff5a00;
-color:white;
-border:none;
-padding:15px 25px;
-font-size:18px;
-cursor:pointer;
-border-radius:5px;
-}
-
-button:hover{
-background:#e14e00;
-}
-
-#popup{
-display:none;
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,0.7);
-justify-content:center;
-align-items:center;
-z-index:9999;
-}
-
-.popup-content{
-background:white;
-padding:30px;
-max-width:400px;
-text-align:center;
-border-radius:10px;
-}
-
-.close{
-margin-top:15px;
-cursor:pointer;
-color:#666;
-}
-
-</style>
-</head>
-
-<body>
-
-<div class="container">
-
-<h1>New Discovery Changing How People Lose Weight</h1>
-
-<p>
-Researchers recently discovered a natural compound that may help support metabolism and fat burning.
-</p>
-
-<p>
-Many people are now trying this simple method to support their weight loss journey.
-</p>
-
-<br>
-
-<a href="SEU_LINK_AFILIADO" target="_blank">
-<button>Watch the Full Presentation</button>
-</a>
-
-</div>
-
-
 <div id="popup">
-
-<div class="popup-content">
-
-<h2>Wait! Don't Miss This</h2>
-
-<p>
-Before you leave, watch the short presentation explaining this new discovery.
-</p>
-
-<a href="SEU_LINK_AFILIADO" target="_blank">
-<button>Watch Now</button>
-</a>
-
-<div class="close" onclick="fecharPopup()">No thanks</div>
-
+  <div class="popup-content">
+    <h2>Wait! You May Not See This Again</h2>
+    <p>
+      Before you leave, there's a good chance this page won't be shown to you again.
+      Thousands of people are already watching the short presentation explaining
+      this newly discovered method.
+    </p>
+    <p>
+      If you're even a little curious, click below and watch the full explanation
+      before this page disappears.
+    </p>
+    <a href="https://e6afdk310h5cds34kq2l21vjrp.hop.clickbank.net" target="_blank">
+      <button>Watch the Full Presentation</button>
+    </a>
+    <div class="close" onclick="fecharPopup()">No thanks</div>
+  </div>
 </div>
-
-</div>
-
 
 <script>
+(function() {
+  // Verifica se o navegador suporta manipulação de histórico
+  if (!window.history || !window.history.pushState) return;
 
-let popupMostrado = false;
+  let popupJaMostrado = false;
 
-document.addEventListener("mouseout", function(e){
+  // Exibe o popup (apenas na primeira vez)
+  function mostrarPopup() {
+    console.log('Tentando mostrar popup. Já mostrado?', popupJaMostrado);
+    const popup = document.getElementById("popup");
+    if (popup && !popupJaMostrado) {
+      popup.style.display = "flex";
+      popupJaMostrado = true;
+      console.log('Popup exibido com sucesso!');
+    }
+  }
 
-if(!popupMostrado && e.clientY < 10){
+  // Fecha o popup (não permite reexibição)
+  window.fecharPopup = function() {
+    const popup = document.getElementById("popup");
+    if (popup) {
+      popup.style.display = "none";
+      // Não alteramos a flag para manter a exibição única
+    }
+  };
 
-document.getElementById("popup").style.display="flex";
-popupMostrado = true;
+  // ---------------- BOTÃO VOLTAR (mobile e desktop) ----------------
+  // Insere um estado falso imediatamente
+  history.pushState({ pagina: 'popup' }, '', '');
 
-}
+  // Intercepta o botão voltar
+  window.addEventListener('popstate', function(event) {
+    console.log('popstate disparado (botão voltar)');
+    mostrarPopup();
 
-});
+    // Reinsere o estado após um pequeno atraso para garantir compatibilidade mobile
+    setTimeout(function() {
+      history.pushState({ pagina: 'popup' }, '', '');
+    }, 0);
+  });
 
-function fecharPopup(){
-document.getElementById("popup").style.display="none";
-}
+  // ---------------- DESKTOP: mouse sai pelo topo ----------------
+  document.addEventListener('mouseout', function(e) {
+    // Só dispara se for próximo ao topo (indicativo de saída)
+    if (e.clientY < 10) {
+      console.log('mouseout no topo detectado');
+      mostrarPopup();
+    }
+  });
 
+  // ---------------- GARANTIA PARA MOBILE (página restaurada do cache) ----------------
+  window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+      console.log('Página restaurada do cache, reinserindo estado');
+      history.pushState({ pagina: 'popup' }, '', '');
+    }
+  });
+
+  // ---------------- GARANTIA NO CARREGAMENTO INICIAL ----------------
+  // Já fizemos pushState no início, mas repetir no load não faz mal
+  window.addEventListener('load', function() {
+    setTimeout(function() {
+      history.pushState({ pagina: 'popup' }, '', '');
+    }, 100);
+  });
+
+})();
 </script>
-
-</body>
-</html>
