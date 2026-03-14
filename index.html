@@ -139,9 +139,73 @@
   
   <link rel="preload" href="/style.css" as="style">
   <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/stylepop.css">
+
    
 </head>
 <body>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div id="popup">
+
+<div class="popup-content">
+
+<h2>Wait! Don't Miss This</h2>
+
+<p>
+Before you leave, watch the short presentation explaining this new discovery.
+</p>
+
+<a href="SEU_LINK_AFILIADO" target="_blank">
+<button>Watch Now</button>
+</a>
+
+<div class="close" onclick="fecharPopup()">No thanks</div>
+
+</div>
+
+</div>
+
+
+<script>
+
+let popupMostrado = false;
+
+document.addEventListener("mouseout", function(e){
+
+if(!popupMostrado && e.clientY < 10){
+
+document.getElementById("popup").style.display="flex";
+popupMostrado = true;
+
+}
+
+});
+
+function fecharPopup(){
+document.getElementById("popup").style.display="none";
+}
+
+</script>
+
+
+
+
+
+
+
+  
 
 <!-- Read progress bar -->
 <div id="readProgress"></div>
