@@ -177,66 +177,62 @@
 
 
 <script>
-let popupJaMostrado = false;
+let popupVisivel = false; // controla se o popup está aberto no momento
 
-// Exibe o popup (apenas na primeira vez)
+// Exibe o popup (apenas se não estiver visível)
 function mostrarPopup() {
-  console.log('Tentando mostrar popup. Já mostrado?', popupJaMostrado);
   const popup = document.getElementById("popup");
-  if (popup && !popupJaMostrado) {
+  if (popup && !popupVisivel) {
     popup.style.display = "flex";
-    popupJaMostrado = true;
-    console.log('Popup exibido com sucesso!');
+    popupVisivel = true;
   }
 }
 
-// Fecha o popup (não permite reexibição)
+// Fecha o popup e permite que ele seja mostrado novamente
 function fecharPopup() {
   const popup = document.getElementById("popup");
   if (popup) {
     popup.style.display = "none";
-    // Não alteramos a flag para manter a exibição única
+    popupVisivel = true;
   }
 }
 
 // ------------------ BOTÃO VOLTAR (mobile e desktop) ------------------
-// Insere um estado falso no histórico ao carregar
+// Adiciona um estado falso no histórico ao carregar a página
 history.pushState({ pagina: 'popup' }, '', '');
 
-// Intercepta o botão voltar
+// Intercepta o evento popstate (disparado ao clicar em "voltar")
 window.addEventListener('popstate', function(event) {
-  console.log('popstate disparado (botão voltar)');
-  mostrarPopup();
-  // Reinsere o estado para capturar o próximo "voltar"
-  history.pushState({ pagina: 'popup' }, '', '');
+  mostrarPopup();               // exibe o popup
+  history.pushState({ pagina: 'popup' }, '', ''); // reinsere estado para o próximo "voltar"
 });
 
 // ------------------ DESKTOP: mouse sai pelo topo ------------------
 document.addEventListener('mouseout', function(e) {
-  // Só dispara se for próximo ao topo (desktop)
-  if (e.clientY < 10) {
-    console.log('mouseout no topo detectado');
+  if (e.clientY < 10) { // saiu pelo topo da janela
     mostrarPopup();
   }
 });
 
-// ------------------ GARANTIA PARA MOBILE (quando a página volta do cache) ------------------
-window.addEventListener('pageshow', function(event) {
-  // Se a página foi carregada do cache (ex: após usar o botão avançar/voltar)
-  if (event.persisted) {
-    console.log('Página restaurada do cache, reinserindo estado');
-    history.pushState({ pagina: 'popup' }, '', '');
+// ------------------ MOBILE: scroll rápido para cima ------------------
+let ultimoScroll = window.pageYOffset;
+
+window.addEventListener('scroll', function() {
+  let scrollAtual = window.pageYOffset;
+  if (ultimoScroll - scrollAtual > 40) { // subiu mais de 40px rapidamente
+    mostrarPopup();
   }
+  ultimoScroll = scrollAtual;
 });
 
-// ------------------ GARANTIA NO CARREGAMENTO INICIAL ------------------
+// ------------------ GARANTIA DO HISTÓRICO (opcional) ------------------
+// Reinsere o estado falso após a página carregar (segurança)
 window.addEventListener('load', function() {
   setTimeout(function() {
     history.pushState({ pagina: 'popup' }, '', '');
   }, 100);
 });
 </script>
-
 
 
 
