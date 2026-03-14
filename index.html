@@ -145,51 +145,79 @@
 </head>
 <body>
 
-  <div id="popup">
+<div id="popup">
   <div class="popup-content">
+
   <h2>Wait! You May Not See This Again</h2>
-  
+
   <p>
   Before you leave, there's a good chance this page won't be shown to you again.
   Thousands of people are already watching the short presentation explaining
   this newly discovered method.
   </p>
-  
+
   <p>
   If you're even a little curious, click below and watch the full explanation
   before this page disappears.
   </p>
-  
+
   <a href="https://e6afdk310h5cds34kq2l21vjrp.hop.clickbank.net" target="_blank">
   <button>Watch the Full Presentation</button>
   </a>
-  
+
   <div class="close" onclick="fecharPopup()">No thanks</div>
+
   </div>
-  
-  </div>
-  
+</div>
+
 <script>
 
-let popupMostrado = false;
+let popupMostrado = false
 
-document.addEventListener("mouseout", function(e){
-
-if(!popupMostrado && e.clientY < 10){
-
-document.getElementById("popup").style.display="flex";
-popupMostrado = true;
-
+function mostrarPopup(){
+  if(!popupMostrado){
+    document.getElementById("popup").style.display="flex"
+    popupMostrado = true
+  }
 }
 
-});
-
 function fecharPopup(){
-document.getElementById("popup").style.display="none";
+  document.getElementById("popup").style.display="none"
+}
+
+//// DESKTOP (mouse sair da tela)
+
+document.addEventListener("mouseout", function(e){
+  if(e.clientY < 10){
+    mostrarPopup()
+  }
+})
+
+//// MOBILE (scroll rápido para cima)
+
+let lastScroll = 0
+
+window.addEventListener("scroll", function(){
+
+let currentScroll = window.pageYOffset
+
+if(currentScroll < lastScroll - 40){
+  mostrarPopup()
+}
+
+lastScroll = currentScroll
+
+})
+
+//// BOTÃO VOLTAR (mobile e desktop)
+
+history.pushState(null, null, location.href)
+
+window.onpopstate = function () {
+  mostrarPopup()
 }
 
 </script>
-
 
 
 
