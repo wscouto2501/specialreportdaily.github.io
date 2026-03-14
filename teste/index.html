@@ -1,10 +1,9 @@
 <link rel="stylesheet" href="/stylepop.css">
 
 <script>
-// Variável de controle para evitar múltiplas exibições simultâneas
-let popupVisivel = false;
+let popupVisivel = false; // controla se o popup está aberto no momento
 
-// Função para mostrar o popup
+// Exibe o popup (apenas se não estiver visível)
 function mostrarPopup() {
   const popup = document.getElementById("popup");
   if (popup && !popupVisivel) {
@@ -13,53 +12,46 @@ function mostrarPopup() {
   }
 }
 
-// Função para fechar o popup
+// Fecha o popup e permite que ele seja mostrado novamente
 function fecharPopup() {
   const popup = document.getElementById("popup");
   if (popup) {
     popup.style.display = "none";
-    popupVisivel = false; // Permite que o popup seja mostrado novamente
+    popupVisivel = false;
   }
 }
 
-// ------------------ Inicialização do histórico falso ------------------
-// Adiciona um estado extra no histórico para capturar o botão voltar
+// ------------------ BOTÃO VOLTAR (mobile e desktop) ------------------
+// Adiciona um estado falso no histórico ao carregar a página
 history.pushState({ pagina: 'popup' }, '', '');
 
-// ------------------ Interceptação do botão voltar ------------------
+// Intercepta o evento popstate (disparado ao clicar em "voltar")
 window.addEventListener('popstate', function(event) {
-  // Quando o usuário clica em voltar, mostramos o popup
-  mostrarPopup();
-  // Adicionamos novamente um estado para que o próximo voltar também seja capturado
-  history.pushState({ pagina: 'popup' }, '', '');
+  mostrarPopup();               // exibe o popup
+  history.pushState({ pagina: 'popup' }, '', ''); // reinsere estado para o próximo "voltar"
 });
 
-// ------------------ Desktop: mouse sai da janela ------------------
+// ------------------ DESKTOP: mouse sai pelo topo ------------------
 document.addEventListener('mouseout', function(e) {
-  // Se o mouse sair pelo topo (menos de 10px do topo)
-  if (e.clientY < 10) {
+  if (e.clientY < 10) { // saiu pelo topo da janela
     mostrarPopup();
   }
 });
 
-// ------------------ Mobile: scroll rápido para cima ------------------
-let ultimaPosicaoScroll = window.pageYOffset;
+// ------------------ MOBILE: scroll rápido para cima ------------------
+let ultimoScroll = window.pageYOffset;
 
 window.addEventListener('scroll', function() {
-  let posicaoAtual = window.pageYOffset;
-  // Se o usuário rolou para cima rapidamente (diferença > 40 pixels)
-  if (ultimaPosicaoScroll - posicaoAtual > 40) {
+  let scrollAtual = window.pageYOffset;
+  if (ultimoScroll - scrollAtual > 40) { // subiu mais de 40px rapidamente
     mostrarPopup();
   }
-  ultimaPosicaoScroll = posicaoAtual;
+  ultimoScroll = scrollAtual;
 });
 
-// ------------------ Opcional: garantir que o histórico esteja sempre presente ------------------
-// Caso o usuário navegue por links internos ou algo que mude o histórico,
-// podemos reinserir o estado falso após um pequeno atraso.
-// Isso não é obrigatório, mas ajuda em páginas com navegação por AJAX.
+// ------------------ GARANTIA DO HISTÓRICO (opcional) ------------------
+// Reinsere o estado falso após a página carregar (segurança)
 window.addEventListener('load', function() {
-  // Pequeno atraso para evitar conflitos com outros scripts
   setTimeout(function() {
     history.pushState({ pagina: 'popup' }, '', '');
   }, 100);
