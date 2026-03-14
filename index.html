@@ -188,7 +188,7 @@ function mostrarPopup() {
   }
 }
 
-// Fecha o popup (agora não reseta a flag, então não poderá ser reexibido)
+// Fecha o popup (não reseta a flag, então não poderá ser reexibido)
 function fecharPopup() {
   const popup = document.getElementById("popup");
   if (popup) {
@@ -212,15 +212,13 @@ document.addEventListener('mouseout', function(e) {
   }
 });
 
-// ------------------ GARANTIA DO HISTÓRICO ------------------
+// -------5----------- GARANTIA DO HISTÓRICO ------------------
 window.addEventListener('load', function() {
   setTimeout(function() {
     history.pushState({ pagina: 'popup' }, '', '');
   }, 100);
 });
 </script>
-
-
 
 
 
