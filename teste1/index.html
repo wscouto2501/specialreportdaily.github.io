@@ -1,55 +1,26 @@
-<link rel="stylesheet" href="/stylepop.css">
 <script>
-const link = 'https://e6afdk310h5cds34kq2l21vjrp.hop.clickbank.net';
+  const link = 'https://e6afdk310h5cds34kq2l21vjrp.hop.clickbank.net';
 
-function getRedirectUrl() {
-  let url = link.trim();
-  if (document.location.search) {
-    url += (url.indexOf('?') > -1 ? '&' : '?') + document.location.search.replace('?', '');
+  function setBackRedirect(url) {
+    let urlBackRedirect = url;
+    urlBackRedirect = urlBackRedirect =
+      urlBackRedirect.trim() +
+      (urlBackRedirect.indexOf('?') > 0 ? '&' : '?') +
+      document.location.search.replace('?', '').toString();
+
+    history.pushState({}, '', location.href);
+    history.pushState({}, '', location.href);
+    history.pushState({}, '', location.href);
+
+    window.addEventListener('popstate', () => {
+      console.log('onpopstate', urlBackRedirect);
+      setTimeout(() => {
+        location.href = urlBackRedirect;
+      }, 1);
+    });
   }
-  return url;
-}
 
-let popupShown = false;
-
-function showExitPopup() {
-  if (popupShown) return;
-  popupShown = true;
-
-  const popup = document.createElement('div');
-  popup.style.position = 'fixed';
-  popup.style.top = '0';
-  popup.style.left = '0';
-  popup.style.width = '100%';
-  popup.style.height = '100%';
-  popup.style.background = 'rgba(0,0,0,0.8)';
-  popup.style.display = 'flex';
-  popup.style.alignItems = 'center';
-  popup.style.justifyContent = 'center';
-  popup.style.zIndex = '9999';
-
-  popup.innerHTML = `
-    <div style="background:#fff;padding:30px;text-align:center;max-width:400px;border-radius:8px">
-      <h2>Wait! Don't Leave Yet</h2>
-      <p>Before you go, see this important information.</p>
-      <button id="exitBtn" style="padding:12px 20px;font-size:16px;cursor:pointer">
-        Continue
-      </button>
-    </div>
-  `;
-
-  document.body.appendChild(popup);
-
-  document.getElementById('exitBtn').onclick = function() {
-    window.location.href = getRedirectUrl();
-  };
-}
-
-document.addEventListener("mouseout", function(e) {
-  if (e.clientY < 0) {
-    showExitPopup();
-  }
-});
+  setBackRedirect(link);
 </script>
 
 
