@@ -1,0 +1,159 @@
+{
+  "_comentario": "=== ARQUIVO DE CONFIGURAÇÃO DO QUIZ === Edite este arquivo para personalizar tudo.",
+
+  "pagina": {
+    "titulo":    "Quiz de Emagrecimento",
+    "descricao": "Descubra o plano ideal para o seu perfil e seus objetivos de saúde.",
+    "favicon":   "🌱"
+  },
+
+  "tema": {
+    "corPrincipal":  "#2E7D4F",
+    "corFundo":      "#F7F6F2",
+    "corCard":       "#FFFFFF",
+    "corTexto":      "#1A1A1A",
+    "corTextomuted": "#6B6860",
+    "fonteTitulo":   "Playfair Display",
+    "fonteCorpo":    "DM Sans"
+  },
+
+  "header": {
+    "logo":     "🌿",
+    "nome":     "Método Vida Leve",
+    "mostrarContadorPerguntas": true
+  },
+
+  "progressBar": {
+    "mostrar":      true,
+    "mostrarDots":  true
+  },
+
+  "navegacao": {
+    "textoBotaoProximo": "Próximo →",
+    "textoBotaoVoltar":  "← Voltar",
+    "textoBotaoFinalizar": "Ver resultado →"
+  },
+
+  "etapas": [
+
+    {
+      "id":       "perfil",
+      "label":    "Etapa 1 — Seu perfil",
+      "titulo":   "Vamos entender o seu corpo e rotina",
+      "subtitulo": "Responda com honestidade — as perguntas são rápidas e sem julgamento.",
+
+      "perguntas": [
+        {
+          "id":    "peso",
+          "texto": "Qual é o seu peso atual?",
+          "opcoes": [
+            { "icone": "⚖️", "label": "Entre 80–99 kg"   },
+            { "icone": "⚖️", "label": "Entre 100–119 kg" },
+            { "icone": "⚖️", "label": "Entre 120–149 kg" },
+            { "icone": "⚖️", "label": "Acima de 150 kg"  }
+          ]
+        },
+        {
+          "id":    "tempo",
+          "texto": "Há quanto tempo você luta com o peso?",
+          "opcoes": [
+            { "icone": "🕐", "label": "Menos de 1 ano"  },
+            { "icone": "📅", "label": "1 a 3 anos"       },
+            { "icone": "📆", "label": "3 a 10 anos"      },
+            { "icone": "🗓️", "label": "Mais de 10 anos" }
+          ]
+        },
+        {
+          "id":    "alimentacao",
+          "texto": "Como você descreveria sua alimentação hoje?",
+          "opcoes": [
+            { "icone": "🥗", "label": "Saudável na maioria"          },
+            { "icone": "🍔", "label": "Muita comida processada"       },
+            { "icone": "🎢", "label": "Oscilo muito (ciclos)"         },
+            { "icone": "🤷", "label": "Não sei por onde começar"     }
+          ]
+        },
+        {
+          "id":    "atividade",
+          "texto": "Qual é seu nível de atividade física?",
+          "opcoes": [
+            { "icone": "🛋️", "label": "Sedentário(a)"          },
+            { "icone": "🚶", "label": "Caminhadas leves"         },
+            { "icone": "🏃", "label": "Exercício 1–2x/semana"   },
+            { "icone": "💪", "label": "Treino regular"           }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id":       "objetivos",
+      "label":    "Etapa 2 — Seus objetivos",
+      "titulo":   "O que você quer transformar na sua vida?",
+      "subtitulo": "Entender sua motivação é essencial para montar o plano ideal para você.",
+
+      "perguntas": [
+        {
+          "id":    "meta",
+          "texto": "Qual é sua principal meta com a perda de peso?",
+          "opcoes": [
+            { "icone": "❤️", "label": "Melhorar minha saúde"          },
+            { "icone": "👗", "label": "Me sentir bem com meu corpo"    },
+            { "icone": "⚡", "label": "Ter mais energia no dia a dia"  },
+            { "icone": "🏥", "label": "Sair de risco de doenças"       }
+          ]
+        },
+        {
+          "id":    "obstaculo",
+          "texto": "Qual é o maior obstáculo que você enfrenta?",
+          "opcoes": [
+            { "icone": "😤", "label": "Falta de disciplina"        },
+            { "icone": "😴", "label": "Cansaço e falta de tempo"   },
+            { "icone": "💰", "label": "Dificuldade financeira"      },
+            { "icone": "🧠", "label": "Emoções e ansiedade"         }
+          ]
+        },
+        {
+          "id":    "historico",
+          "texto": "Você já tentou emagrecer antes?",
+          "opcoes": [
+            { "icone": "🆕", "label": "Primeira tentativa"                    },
+            { "icone": "🔄", "label": "Sim, sem sucesso"                       },
+            { "icone": "🏳️","label": "Emagreci e voltei a engordar"           },
+            { "icone": "👨‍⚕️","label": "Tentei com acompanhamento médico"    }
+          ]
+        },
+        {
+          "id":    "prazo",
+          "texto": "Em quanto tempo você quer ver resultados?",
+          "opcoes": [
+            { "icone": "⚡", "label": "O mais rápido possível"              },
+            { "icone": "📅", "label": "Em até 3 meses"                       },
+            { "icone": "🗺️", "label": "Em 6 a 12 meses"                    },
+            { "icone": "🐢", "label": "Com calma e de forma sustentável"    }
+          ]
+        }
+      ]
+    }
+
+  ],
+
+  "resultado": {
+    "icone":   "🌱",
+    "titulo":  "Seu perfil está pronto! Temos o plano certo para você.",
+    "texto":   "Com base nas suas respostas, identificamos o caminho mais eficaz para você emagrecer com saúde — sem dietas radicais, com ciência e suporte real.",
+    "tags":    [
+      "Plano personalizado",
+      "Sem dietas radicais",
+      "Acompanhamento contínuo",
+      "Resultados reais"
+    ]
+  },
+
+  "botaoCTA": {
+    "label":    "Ver meu plano gratuito agora",
+    "sublabel": "Sem compromisso · Resultado em 7 dias",
+    "href":     "https://seusite.com.br/plano",
+    "abrirNovaAba": true
+  }
+}

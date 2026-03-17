@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Quiz</title>
+
+<!--
+  ╔══════════════════════════════════════════════════════════════╗
+  ║  QUIZ ENGINE — não edite este arquivo.                      ║
+  ║  Para personalizar o quiz, edite: quiz-config.json          ║
+  ╚══════════════════════════════════════════════════════════════╝
+-->
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --accent:        #2E7D4F;
+  --accent-light:  rgba(46,125,79,0.09);
+  --accent-border: rgba(46,125,79,0.55);
+  --bg:            #F7F6F2;
+  --card:          #FFFFFF;
+  --text:          #1A1A1A;
+  --muted:         #6B6860;
+  --border:        rgba(0,0,0,0.1);
+  --radius:        14px;
+  --font-display:  'Playfair Display', Georgia, serif;
+  --font-body:     'DM Sans', system-ui, sans-serif;
+}
+
+html, body {
+  min-height: 100%;
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 10% 20%, rgba(46,125,79,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 90% 80%, rgba(46,125,79,0.07) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── LOADING ── */
+#loading {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 10;
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(0,0,0,0.08);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-text {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* ── ERRO ── */
+#error {
+  display: none;
+  position: fixed;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  padding: 2rem;
+}
+
+.error-card {
+  background: var(--card);
+  border-radius: 20px;
+  padding: 2rem;
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  border: 1px solid rgba(200,50,50,0.2);
+}
+
+.error-icon  { font-size: 40px; margin-bottom: 1rem; display: block; }
+.error-title { font-size: 18px; font-weight: 500; margin-bottom: 0.5rem; color: var(--text); }
+.error-msg   { font-size: 14px; color: var(--muted); line-height: 1.6; }
+.error-file  { display: inline-block; margin-top: 0.75rem; font-size: 13px; font-family: monospace; background: #f3f3f3; padding: 4px 10px; border-radius: 6px; color: #c0392b; }
+
+/* ── APP (oculto até carregar) ── */
+#app { display: none; }
+
+/* ── LAYOUT ── */
+.page {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 1rem 4rem;
+}
+
+/* ── HEADER ── */
+.header {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 0 1rem;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -0.01em;
+}
+
+.brand-logo { font-size: 18px; }
+
+.step-counter {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+/* ── PROGRESS ── */
+.progress-wrap {
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 2rem;
+}
+
+.progress-track {
+  height: 5px;
+  background: rgba(0,0,0,0.08);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 99px;
+  transition: width 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stage-dots {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.stage-dot {
+  height: 4px;
+  border-radius: 99px;
+  background: rgba(0,0,0,0.12);
+  transition: all 0.35s ease;
+  flex: 1;
+}
+
+.stage-dot.done   { background: var(--accent); }
+.stage-dot.active { background: var(--accent); opacity: 0.5; }
+
+/* ── CARD ── */
+.card {
+  background: var(--card);
+  border-radius: 20px;
+  border: 1px solid rgba(0,0,0,0.06);
+  padding: 2rem 2rem 1.75rem;
+  width: 100%;
+  max-width: 600px;
+  box-shadow: 0 2px 24px rgba(0,0,0,0.06);
+  animation: fadeUp 0.35s ease both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── LABELS E TEXTOS ── */
+.step-label {
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.6rem;
+}
+
+.q-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--text);
+  margin-bottom: 0.4rem;
+}
+
+.q-title.small {
+  font-size: 18px;
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.q-sub {
+  font-size: 14.5px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 1.75rem;
+}
+
+/* ── OPÇÕES ── */
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 1.75rem;
+}
+
+.opt {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color 0.18s, background 0.18s, transform 0.12s;
+  background: #FAFAF8;
+  user-select: none;
+}
+
+.opt:hover {
+  border-color: var(--accent-border);
+  background: var(--accent-light);
+  transform: translateX(3px);
+}
+
+.opt.selected {
+  border-color: var(--accent);
+  background: var(--accent-light);
+}
+
+.opt-icon {
+  font-size: 20px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: rgba(0,0,0,0.04);
+  flex-shrink: 0;
+  transition: background 0.18s;
+}
+
+.opt.selected .opt-icon { background: rgba(46,125,79,0.15); }
+
+.opt-text {
+  font-size: 15px;
+  color: var(--text);
+  flex: 1;
+  line-height: 1.4;
+}
+
+.opt-check {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0,0,0,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.18s;
+}
+
+.opt.selected .opt-check {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.opt.selected .opt-check::after {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: white;
+}
+
+/* ── NAVEGAÇÃO ── */
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.btn-back {
+  background: none;
+  border: 1.5px solid var(--border);
+  color: var(--muted);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: 99px;
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+
+.btn-back:hover {
+  border-color: rgba(0,0,0,0.25);
+  color: var(--text);
+}
+
+.btn-next {
+  background: var(--accent);
+  border: none;
+  color: white;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 500;
+  padding: 11px 28px;
+  border-radius: 99px;
+  cursor: pointer;
+  transition: all 0.2s;
+  opacity: 0.35;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.btn-next.active             { opacity: 1; pointer-events: all; }
+.btn-next.active:hover       { background: #225f3c; transform: translateX(2px); }
+
+/* ── RESULTADO ── */
+.result-wrap {
+  text-align: center;
+  padding: 1rem 0 0.5rem;
+}
+
+.result-icon {
+  font-size: 56px;
+  margin-bottom: 1.25rem;
+  display: block;
+  animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+
+@keyframes popIn {
+  from { transform: scale(0.4); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+.result-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--text);
+  margin-bottom: 1rem;
+}
+
+.result-text {
+  font-size: 15px;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-bottom: 1.75rem;
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.pill {
+  padding: 6px 14px;
+  border-radius: 99px;
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--accent-light);
+  color: var(--accent);
+  border: 1px solid rgba(46,125,79,0.2);
+}
+
+/* ── BOTÃO CTA ── */
+.btn-cta {
+  display: block;
+  width: 100%;
+  background: var(--accent);
+  border: none;
+  color: white;
+  font-family: var(--font-body);
+  font-size: 17px;
+  font-weight: 500;
+  padding: 18px 32px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.22s;
+  text-decoration: none;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.btn-cta:hover {
+  background: #225f3c;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 32px rgba(46,125,79,0.28);
+}
+
+.btn-cta-sub {
+  display: block;
+  font-size: 12px;
+  font-weight: 400;
+  color: rgba(255,255,255,0.72);
+  margin-top: 4px;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 480px) {
+  .card        { padding: 1.5rem 1.25rem 1.5rem; }
+  .q-title     { font-size: 19px; }
+  .btn-cta     { font-size: 15px; padding: 16px 24px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ESTADO: CARREGANDO -->
+<div id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text">Carregando quiz…</div>
+</div>
+
+<!-- ESTADO: ERRO -->
+<div id="error">
+  <div class="error-card">
+    <span class="error-icon">⚠️</span>
+    <div class="error-title">Não foi possível carregar o quiz</div>
+    <div class="error-msg">
+      Certifique-se de que o arquivo de configuração existe e está na mesma pasta que este HTML.
+      <br />
+      <span class="error-file">quiz-config.json</span>
+    </div>
+  </div>
+</div>
+
+<!-- ESTADO: CARREGADO -->
+<div id="app">
+  <div class="page">
+    <div class="header">
+      <div class="brand">
+        <span class="brand-logo" id="headerLogo"></span>
+        <span id="headerNome"></span>
+      </div>
+      <div class="step-counter" id="stepCounter"></div>
+    </div>
+
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+      </div>
+      <div class="stage-dots" id="stageDots"></div>
+    </div>
+
+    <div id="quizScreen"></div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════
+   QUIZ ENGINE — lê quiz-config.json e renderiza tudo
+   ══════════════════════════════════════════════════════════ */
+
+(async function () {
+
+  /* ── 1. Carrega o JSON ── */
+  let C; // config
+  try {
+    const res = await fetch('quiz-config.json');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    C = await res.json();
+  } catch (e) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error').style.display   = 'flex';
+    console.error('Erro ao carregar quiz-config.json:', e);
+    return;
+  }
+
+  /* ── 2. Aplica tema ── */
+  const T = C.tema || {};
+  const root = document.documentElement;
+  if (T.corPrincipal)  {
+    root.style.setProperty('--accent',        T.corPrincipal);
+    root.style.setProperty('--accent-light',  T.corPrincipal + '14');
+    root.style.setProperty('--accent-border', T.corPrincipal + '99');
+  }
+  if (T.corFundo)      root.style.setProperty('--bg',    T.corFundo);
+  if (T.corCard)       root.style.setProperty('--card',  T.corCard);
+  if (T.corTexto)      root.style.setProperty('--text',  T.corTexto);
+  if (T.corTextomuted) root.style.setProperty('--muted', T.corTextomuted);
+  if (T.fonteTitulo)   root.style.setProperty('--font-display', `'${T.fonteTitulo}', Georgia, serif`);
+  if (T.fonteCorpo)    root.style.setProperty('--font-body',    `'${T.fonteCorpo}', system-ui, sans-serif`);
+
+  /* ── 3. Aplica meta da página ── */
+  const P = C.pagina || {};
+  if (P.titulo)    document.title = P.titulo;
+  if (P.favicon)   {
+    const link = document.createElement('link');
+    link.rel = 'icon'; link.href = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>${P.favicon}</text></svg>`;
+    document.head.appendChild(link);
+  }
+
+  /* ── 4. Google Fonts dinâmico ── */
+  if (T.fonteTitulo || T.fonteCorpo) {
+    const famílias = [T.fonteTitulo, T.fonteCorpo].filter(Boolean)
+      .map(f => f.replace(/ /g, '+') + ':wght@400;500;700')
+      .join('&family=');
+    const link = document.createElement('link');
+    link.rel  = 'stylesheet';
+    link.href = `https://fonts.googleapis.com/css2?family=${famílias}&display=swap`;
+    document.head.appendChild(link);
+  }
+
+  /* ── 5. Header ── */
+  const H = C.header || {};
+  document.getElementById('headerLogo').textContent = H.logo || '';
+  document.getElementById('headerNome').textContent = H.nome || '';
+
+  /* ── 6. Progresso / dots ── */
+  const PB = C.progressBar || {};
+  if (PB.mostrar === false) document.getElementById('progressWrap').style.display = 'none';
+
+  /* ── 7. Estado do quiz ── */
+  const NAV   = C.navegacao || {};
+  const steps = C.etapas    || [];
+  let stepIdx = 0;
+  let qIdx    = 0;
+  const answers = {};
+
+  const totalQ = steps.reduce((n, s) => n + (s.perguntas || []).length, 0);
+
+  function globalIndex() {
+    let g = 0;
+    for (let i = 0; i < stepIdx; i++) g += steps[i].perguntas.length;
+    return g + qIdx;
+  }
+
+  /* ── Dots de etapa ── */
+  function renderDots() {
+    if (PB.mostrarDots === false) return;
+    const el = document.getElementById('stageDots');
+    el.innerHTML = steps.map((_, i) => {
+      let cls = 'stage-dot';
+      if (i < stepIdx)      cls += ' done';
+      else if (i === stepIdx) cls += ' active';
+      return `<div class="${cls}"></div>`;
+    }).join('');
+  }
+
+  /* ── Barra de progresso ── */
+  function updateProgress(done) {
+    const pct = done ? 100 : Math.round((globalIndex() / totalQ) * 100);
+    document.getElementById('progressFill').style.width = pct + '%';
+
+    const showCounter = H.mostrarContadorPerguntas !== false;
+    document.getElementById('stepCounter').textContent =
+      (showCounter && !done) ? `Pergunta ${globalIndex() + 1} de ${totalQ}` : '';
+
+    renderDots();
+  }
+
+  /* ── Renderiza pergunta ── */
+  function renderQuestion() {
+    const step = steps[stepIdx];
+    const q    = step.perguntas[qIdx];
+    const key  = `${stepIdx}-${qIdx}`;
+    const first = qIdx === 0;
+
+    const heading = first
+      ? `<div class="q-title">${step.titulo}</div>
+         <div class="q-sub">${step.subtitulo || ''}</div>
+         <div class="q-title small">${q.texto}</div>`
+      : `<div class="q-title" style="margin-bottom:1.5rem">${q.texto}</div>`;
+
+    const isLast = (stepIdx === steps.length - 1) && (qIdx === step.perguntas.length - 1);
+    const nextLabel = isLast
+      ? (NAV.textoBotaoFinalizar || 'Ver resultado →')
+      : (NAV.textoBotaoProximo   || 'Próximo →');
+
+    const showBack = !(stepIdx === 0 && qIdx === 0);
+
+    const optsHTML = q.opcoes.map((o, i) =>
+      `<div class="opt${answers[key] === i ? ' selected' : ''}" data-idx="${i}">
+         <div class="opt-icon">${o.icone || ''}</div>
+         <div class="opt-text">${o.label}</div>
+         <div class="opt-check"></div>
+       </div>`
+    ).join('');
+
+    document.getElementById('quizScreen').innerHTML = `
+      <div class="card">
+        <div class="step-label">${step.label || ''}</div>
+        ${heading}
+        <div class="options">${optsHTML}</div>
+        <div class="nav">
+          <button class="btn-back" id="btnBack"
+            style="${showBack ? '' : 'visibility:hidden'}">
+            ${NAV.textoBotaoVoltar || '← Voltar'}
+          </button>
+          <button class="btn-next${answers[key] !== undefined ? ' active' : ''}" id="btnNext">
+            ${nextLabel}
+          </button>
+        </div>
+      </div>`;
+
+    document.querySelectorAll('.opt').forEach(el => {
+      el.addEventListener('click', () => {
+        document.querySelectorAll('.opt').forEach(x => x.classList.remove('selected'));
+        el.classList.add('selected');
+        answers[key] = parseInt(el.dataset.idx, 10);
+        document.getElementById('btnNext').classList.add('active');
+      });
+    });
+
+    document.getElementById('btnNext').addEventListener('click', goNext);
+    document.getElementById('btnBack').addEventListener('click', goBack);
+
+    updateProgress(false);
+  }
+
+  /* ── Avança ── */
+  function goNext() {
+    const step = steps[stepIdx];
+    if (qIdx < step.perguntas.length - 1) {
+      qIdx++;
+      renderQuestion();
+    } else if (stepIdx < steps.length - 1) {
+      stepIdx++;
+      qIdx = 0;
+      renderQuestion();
+    } else {
+      renderResult();
+    }
+  }
+
+  /* ── Volta ── */
+  function goBack() {
+    if (qIdx > 0) {
+      qIdx--;
+      renderQuestion();
+    } else if (stepIdx > 0) {
+      stepIdx--;
+      qIdx = steps[stepIdx].perguntas.length - 1;
+      renderQuestion();
+    }
+  }
+
+  /* ── Resultado ── */
+  function renderResult() {
+    const R   = C.resultado  || {};
+    const CTA = C.botaoCTA   || {};
+
+    updateProgress(true);
+
+    // dots todos verdes
+    document.getElementById('stageDots').querySelectorAll('.stage-dot')
+      .forEach(d => { d.classList.remove('active'); d.classList.add('done'); });
+
+    const pillsHTML = (R.tags || []).map(t => `<span class="pill">${t}</span>`).join('');
+    const target    = CTA.abrirNovaAba ? 'target="_blank" rel="noopener"' : '';
+
+    document.getElementById('quizScreen').innerHTML = `
+      <div class="card">
+        <div class="result-wrap">
+          <span class="result-icon">${R.icone || '🎉'}</span>
+          <div class="result-title">${R.titulo || 'Obrigado!'}</div>
+          <div class="result-text">${R.texto  || ''}</div>
+          <div class="pills">${pillsHTML}</div>
+          <a class="btn-cta" href="${CTA.href || '#'}" ${target}>
+            ${CTA.label || 'Continuar'}
+            ${CTA.sublabel ? `<span class="btn-cta-sub">${CTA.sublabel}</span>` : ''}
+          </a>
+        </div>
+      </div>`;
+  }
+
+  /* ── 8. Exibe app e inicia ── */
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('app').style.display     = 'block';
+
+  renderDots();
+  renderQuestion();
+
+})();
+</script>
+
+</body>
+</html>
